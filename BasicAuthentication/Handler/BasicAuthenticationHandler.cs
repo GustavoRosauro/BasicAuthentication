@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
@@ -20,6 +21,7 @@ namespace BasicAuthentication.Handler
 
         protected override Task<AuthenticateResult> HandleAuthenticateAsync()
         {
+            var config = JsonConvert.DeserializeObject<dynamic>(File.ReadAllText("appsettings.json"));
             var authHeader = Request.Headers["Authorization"].ToString();
             if (authHeader != null && authHeader.StartsWith("basic", StringComparison.OrdinalIgnoreCase))
             {
@@ -27,7 +29,7 @@ namespace BasicAuthentication.Handler
                 System.Console.WriteLine(token);
                 var credentialstring = Encoding.UTF8.GetString(Convert.FromBase64String(token));
                 var credentials = credentialstring.Split(':');
-                if (credentials[0] == "Gustavo" && credentials[1] == "Gustavo")
+                if (credentials[0] == Convert.ToString(config.User) &&  credentials[1] == Convert.ToString(config.Password))
                 {
                     var claims = new[] { new Claim("name", credentials[0]), new Claim(ClaimTypes.Role, "Admin") };
                     var identity = new ClaimsIdentity(claims, "Basic");
